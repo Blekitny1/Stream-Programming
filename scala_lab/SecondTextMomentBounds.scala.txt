@@ -1,0 +1,21 @@
+object SecondTextMomentBounds {
+import scala.io._
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val file = args(0)
+val fileSource = Source.fromFile(file)
+val words=fileSource.mkString.toLowerCase.split("\\W+")
+val counts = words.groupBy(i => i).mapValues(_.size).map(i => i._2).toList
+val x = Range(0, 3).map(k => counts.map(i => math.pow(i, k)).toList.sum).toList
+val (m0, m1, m2) = x match { case List(a, b, c) => (a, b, c) }
+val approxLowerBound = m1 * m1 / m0
+val upperBound = (m1 - m0 + 1) * (m1 - m0 + 1) + m0 - 1
+
+fileSource.close
+println("The approximation of lower bound for second text moment is: " + approxLowerBound + ", which is smaller, than the true second text moment " + m2 + ", which is smaller than the upper bound " + upperBound) 
+}
+else println("no file")
+}
+}
+

@@ -1,0 +1,22 @@
+object TopKWords {
+import scala.io._
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val file = args(0)
+val k = args(1).toInt
+val fileSource = Source.fromFile(file)
+val words = fileSource.mkString.toLowerCase.split("\\W+")
+val stopwordsFile = Source.fromFile("C:/Users/Student234758/Desktop/scala_lab/stop_words_english.txt")
+val stopwords = stopwordsFile.mkString.split("\\W+")
+val counts = words.filter(w => stopwords.contains(w) == false).groupBy(i => i).mapValues(_.size)
+val x = counts.values.max
+val threshold = Range(1, x + 1).filter(i => counts.filter{case (k,v) => v >= i}.size == k).toList(0)
+stopwordsFile.close
+fileSource.close
+println("the " + k + " most frequent words are: " + counts.filter{case (k,v) => v >= threshold}.keys.toList + " with respective counts " + counts.filter{case (k,v) => v >= threshold}.values.toList)
+}
+else println("no file")
+}
+}
+

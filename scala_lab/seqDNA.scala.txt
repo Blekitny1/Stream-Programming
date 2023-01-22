@@ -1,0 +1,21 @@
+import java.net.URL
+import java.util.zip.GZIPInputStream
+import scala.io.Source
+val genURL = "https://ftp.ncbi.nih.gov/genomes/refseq/"
+val species= "bacteria/Escherichia_coli/reference/GCF_000005845.2_ASM584v2/"
+val dna = "GCF_000005845.2_ASM584v2_genomic.fna.gz"
+val fileURL= new URL(genURL+species+dna)
+val is = fileURL.openStream()
+val gz = new GZIPInputStream(is)
+val seqDNA = Source.fromInputStream(gz).getLines().drop(1).mkString("")
+var freqs = Array.fill(64)(0)
+val codons2 = Array("AAA","AAC","AAG","AAT", "ACA", "ACC", "ACG", "ACT", "AGA","AGC","AGG", "AGT", "ATA", "ATC", "ATG", "ATT", "CAA", "CAC", "CAG", "CAT", "CCA", "CCC", "CCG", "CCT", "CGA", "CGC", "CGG",
+"CGT", "CTA", "CTC", "CTG", "CTT", "GAA", "GAC", "GAG", "GAT", "GCA", "GCC", "GCG", "GCT", "GGA", "GGC", "GGG", "GGT", "GTA", "GTC", "GTG", "GTT", "TAA", "TAC", "TAG", "TAT", "TCA", "TCC", "TCG", "TCT", "TGA", "TGC", "TGG", "TGT", "TTA", "TTC", "TTG", "TTT")
+val l = seqDNA.length
+for(i <- 0 until l/3){
+val slice = seqDNA.slice(3*i, 3*i + 3)
+freqs(codons2.indexOf(slice)) += 1
+}
+codons2 zip freqs.map(3 * _ / l.toDouble)
+
+

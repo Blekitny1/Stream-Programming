@@ -1,0 +1,20 @@
+object BloomDistinct {
+import scala.io._
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val file1 = args(0)
+val file2 = args(1)
+val file1Source = Source.fromFile(file1)
+val file2Source = Source.fromFile(file2)
+val words1 = file1Source.mkString.toLowerCase.split("\\W+").toSet
+val words2 = file2Source.mkString.toLowerCase.split("\\W+").toSet
+file1Source.close
+file2Source.close
+val numbers1 = words1.map(w => MurmurHash3.stringHash(w))
+val numbers2 = words2.map(w => MurmurHash3.stringHash(w))
+println("number of words from first file and not in the other file is : " + words1.diff(words2).size)
+}
+else println("no file")
+}
+}

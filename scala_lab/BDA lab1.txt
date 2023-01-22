@@ -1,0 +1,132 @@
+Assignment 1
+
+object wordLoaderTfidf {
+import scala.io._
+import scala.io.StdIn.readLine
+def main(args:Array[String]):Unit = {
+
+def func1(storedData: Map[String, Int], s: String): Map[String, Int] = {
+val words = s.toLowerCase.split("\\W+")
+val stopwordsFile = Source.fromFile("C:/Users/Student234758/Desktop/scala_lab/stop_words_english.txt")
+val stopwords = stopwordsFile.mkString.split("\\W+")
+val counts = words.filter(w => stopwords.contains(w) == false).groupBy(i => i).mapValues(_.size)
+
+println("Stored data successfully updated. ")
+
+(storedData.keySet ++ counts.keySet).map{i=> (i, storedData.getOrElse(i, 0) + counts.getOrElse(i,0))}.toMap
+}
+
+def func2(storedData: Map[String, Int], filePath: String): Map[String, Int] = {func1(storedData, Source.fromFile(filePath).mkString)}
+
+def func3(storedData: Map[String, Int], k: Int): Unit = {
+val x = storedData.values.max
+val threshold = Range(1, x + 1).filter(i => storedData.filter{case (k,v) => v >= i}.size == k).toList(0)
+println("The " + k + " most frequent words are: " + storedData.filter{case (k,v) => v >= threshold}.keys.toList + " with respective counts " + storedData.filter{case (k,v) => v >= threshold}.values.toList)
+}
+
+def func4(filePath: String, k: Int): Unit = {
+val fileSource = Source.fromFile(filePath)
+val words = fileSource.mkString.toLowerCase.split("\\W+")
+val stopwordsFile = Source.fromFile("C:/Users/Student234758/Desktop/scala_lab/stop_words_english.txt")
+val stopwords = stopwordsFile.mkString.split("\\W+")
+val counts = words.filter(w => stopwords.contains(w) == false).groupBy(i => i).mapValues(_.size)
+val x = counts.values.max
+val threshold = Range(1, x + 1).filter(i => counts.filter{case (k,v) => v >= i}.size == k).toList(0)
+stopwordsFile.close
+fileSource.close
+println("The " + k + " most frequent words are: " + counts.filter{case (k,v) => v >= threshold}.keys.toList + " with respective counts " + counts.filter{case (k,v) => v >= threshold}.values.toList)
+println("This data was not added to currently stored data. ")
+}
+
+var storedData: Map[String, Int] = Map()
+
+val bigString = "For using raw String as input write 1. \n For using txt file as input write 2. \n For printing to console selected number of currently most frequent words write 3. \n For using txt file as input and printing to console selected number of currently most frequent words write 4. \n For loading multiple documents and calculating selected number of highest TF-IDFs for their terms write 5. \n For quitting the application write q. "
+
+var stillInLoop: Boolean = true
+while(stillInLoop){
+println(bigString)
+val n = readLine()
+if (n == "1") {
+    println("Input a String. ")
+    val string1 = readLine()
+    storedData = func1(storedData, string1)
+} else if (n == "2") {
+    println("Input a path to txt file. ")
+    val path = readLine()
+    storedData = func2(storedData, path)
+} else if (n == "3") {
+    println("Input a number of most frequent words to output to console. ")
+    val k = readLine()
+    func3(storedData, k.toInt)
+} else if (n == "4") {
+    println("Input a path to txt file. ")
+    val path = readLine()
+    println("Input a number of most frequent words to output to console ")
+    val k = readLine()
+    func4(path, k.toInt)
+} else if (n == "5") {
+    println("Input a number of documents to load. ")
+    val c = readLine().toInt
+    val documentWordCountsMap = scala.collection.mutable.Map[String, Map[String, Int]]() 
+    var a = 0
+    for (a <- 1 to c) {
+	println("Input a path to the file with document " + a.toString)
+	val filePath = readLine()
+	val fileSource = Source.fromFile(filePath)
+	val words = fileSource.mkString.toLowerCase.split("\\W+")
+	val stopwordsFile = Source.fromFile("C:/Users/Student234758/Desktop/scala_lab/stop_words_english.txt")
+	val stopwords = stopwordsFile.mkString.split("\\W+")
+	documentWordCountsMap += (filePath -> words.filter(w => stopwords.contains(w) == false).groupBy(i => i).mapValues(_.size).toMap)
+    }
+    val totalWordsInDocument: Map[String, Int] = documentWordCountsMap.keys.map(i => i -> documentWordCountsMap(i).values.sum).toMap
+    def un(x: Map[String, Int], y: Map[String, Int]): Map[String, Int] = {
+	x.keys.toSet.union(y.keys.toSet).map(i => i -> 1).toMap
+    }
+    val almostIdfs: Map[String, Int] = documentWordCountsMap.values.reduce(un).keys.map(i => i -> documentWordCountsMap.values.filter(j => j.contains(i)).size).toMap
+    val tfidfs = documentWordCountsMap.keys.map(i => i -> documentWordCountsMap(i).keys.map(j => j -> 1.0 * documentWordCountsMap(i)(j) / totalWordsInDocument(i) * math.log10(c / almostIdfs(j))))
+    import scala.collection.immutable.ListMap
+	println("The documents with the words they contain and their TF-IDFs are " + tfidfs.toMap.values.map(i => ListMap(i.toSeq.sortWith(_._2 > _._2):_*).take(10)))
+} else if (n == "q") {
+    println("Thank you for using our application. Goodbye. ")
+    stillInLoop = false
+} else {
+    println("This input does not correspond to any functionality. Please try again. ")
+}
+}
+}
+}
+
+C:\Users\Student234758>scala wordLoaderTfidf
+For using raw String as input write 1.
+ For using txt file as input write 2.
+ For printing to console selected number of currently most frequent words write 3.
+ For using txt file as input and printing to console selected number of currently most frequent words write 4.
+ For loading multiple documents and calculating selected number of highest TF-IDFs for their terms write 5.
+ For quitting the application write q.
+5
+Input a number of documents to load.
+2
+Input a path to the file with document 1
+C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\alice29.txt
+Input a path to the file with document 2
+C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\plrabn12.txt
+The documents with the words they contain and their TF-IDFs are List(ListMap(heaven -> 0.0034103438740897152, thee -> 0.002913849897193599, god -> 0.0021162038359506586, hell -> 9.685702172235707E-4, hath -> 9.197347440862479E-4, light -> 8.464815343802635E-4, adam -> 8.302030433344892E-4, eve -> 7.976460612429406E-4, power -> 6.51139641830972E-4, satan -> 5.778864321249875E-4), ListMap(alice -> 0.015409638363249456, turtle -> 0.0022843433754565776, hatter -> 0.00216819032246726, rabbit -> 0.0019746019008183976, mouse -> 0.00170357811050999, duchess -> 0.0015874250575206724, tone -> 0.0015487073731909001, dormouse -> 0.0015487073731909001, cat -> 0.0014325543202015826, hare -> 0.0012002482142229477))
+
+
+Assignment 2
+
+scala> val graph: Map[Int, List[Int]] = Map((1, List(2, 3)), (3, List(1, 5)), (2, List(5)), (5, List())))
+
+scala> graph.keys.map(i => i -> graph.keys.filter(j => graph(j).toSet.contains(i)).toList).toList
+val res3: List[(Int, List[Int])] = List((1,List(3)), (3,List(1)), (2,List(1)), (5,List(3, 2)))
+
+def mapG(graph: Map[Int, List[Int]]): scala.collection.immutable.Set[(Int, Int)] = {
+graph.keys.map(k => graph(k).map(v => k -> v).toSet).reduce(_.union(_))
+}
+
+def reduceG(graph: Map[Int, List[Int]], s: scala.collection.immutable.Set[(Int, Int)]): List[(Int, List[Int])] = {
+graph.keys.map(k => k -> s.filter(t => t._2 == k).map(j => j._1).toList).toList
+} 
+
+reduceG(graph, mapG(graph))
+val res60: List[(Int, List[Int])] = List((1,List(3)), (3,List(1)), (2,List(1)), (5,List(2, 3)))

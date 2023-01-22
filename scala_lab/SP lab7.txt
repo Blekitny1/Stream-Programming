@@ -1,0 +1,45 @@
+Assingment 1:
+
+import Element.elem
+object Rectangle {
+  val space = elem(" ")
+  val corner = elem("*")
+
+  def rectangle(height: Int, width: Int): Element = {
+    def horizontalBar: Element = elem("|") beside elem(' ', width - 2, 1) beside elem("|")
+    (corner beside elem('=', width - 2, 1) beside corner) above elem(Array.fill(height - 2)(horizontalBar.toString)) above (corner beside elem('=', width - 2, 1) beside corner)
+  }
+
+  def main(args: Array[String]): Unit = {
+    val h = 5
+    val w = 10
+    println(rectangle(h, w))
+}
+}
+
+*========*
+|        |
+|        |
+|        |
+*========*
+
+
+Assignment 4:
+
+def stochasticBucket256(n: Int) = {
+val m = 256
+val numbers = List.fill(n)(nextInt())
+val zjs = Range(0, m).map(i => numbers.filter(j => math.floorMod(j, m) == i).map(k => Integer.numberOfLeadingZeros(k) + 1).max).map(l => math.pow(2, l).toInt)
+println("For arithmetic mean Z = " + zjs.sum)
+println("The exact number of distinct random numbers is " + numbers.groupBy(i => i).size)
+println("If we use harmonic mean instead, Z = " + m*m/zjs.map(i => 1 / i.toDouble).sum)
+}
+
+For n = 2^25 and higher, I was getting stack overflow, so I did the exercise for n = 2^24.
+
+scala> stochasticBucket256(math.pow(2, 24).toInt)
+For arithmetic mean Z = 181927936 (181 mln)
+The exact number of distinct random numbers is 16744201 (16mln)
+If we use harmonic mean instead, Z = 23202566.6636982 (23 mln)
+
+Harmonic mean provides the same order of magnitude as the true number of  distinic elements, however the true mean gives 100x higher estimate

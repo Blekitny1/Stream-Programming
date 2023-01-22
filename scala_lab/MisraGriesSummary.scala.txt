@@ -1,0 +1,49 @@
+object MisraGriesSummary {
+import scala.io._
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val file = args(0)
+val fileSource = Source.fromFile(file)
+val words = fileSource.mkString.toLowerCase.split("\\W+")
+val m = words.size
+val k = 21
+val dummy = "0cleared0"
+var commonWords: Array[String] = Array.fill(k - 1)("0why0")
+var wordCounters: Array[Int] = Array.fill(k - 1)(0)
+
+for (w <- words) {
+val keyExists = commonWords.indexOf(w)
+if (keyExists != -1) {
+wordCounters(keyExists) += 1
+} else {
+val spaceAvailable = wordCounters.indexOf(0)
+if (spaceAvailable != -1) {
+commonWords(spaceAvailable) = w
+wordCounters(spaceAvailable) = 1
+} else {
+wordCounters = wordCounters.map(i => i - 1)
+val keysWithZeros = Range(0, k - 1).filter(i => wordCounters(i) == 0)
+keysWithZeros.foreach(i => commonWords(i) = dummy)
+}}}
+println("The frequency threshold is " + m.toDouble / k)
+println("Common words are " + commonWords.toList + ",  their counters are " + wordCounters.toList)
+val legitimateWordsIndicies = Range(0, k - 1).filter(i => commonWords(i) != dummy)
+val legitimateWords = legitimateWordsIndicies.map(i => commonWords(i))
+println(legitimateWords)
+val theirOccurences = legitimateWords.map(w => words.count(i => i == w))
+println(theirOccurences)
+val lowerFreqBounds = theirOccurences.map(o => o - m.toDouble / k)
+println(lowerFreqBounds)
+val mgsFreqs = legitimateWordsIndicies.map(i => wordCounters(i))
+println(mgsFreqs)
+val falsePositivity = theirOccurences.map(i => i > m.toDouble / k)
+println(falsePositivity)
+val theoreticalEstimateHolds = Range(0, legitimateWordsIndicies.size).map(i => theirOccurences(i) - m.toDouble / k < mgsFreqs(i) && mgsFreqs(i) < theirOccurences(i))
+println(theoreticalEstimateHolds) 
+
+
+}
+else println("no file")
+}
+}

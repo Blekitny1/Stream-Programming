@@ -1,0 +1,17 @@
+object TextMoments {
+import scala.io._
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val file = args(0)
+val fileSource = Source.fromFile(file)
+val words=fileSource.mkString.toLowerCase.split("\\W+")
+val counts = words.groupBy(i => i).mapValues(_.size).map(i => i._2).toList
+val moments = Range(0, 4).map(k => counts.map(i => math.pow(i, k)).toList.sum)
+fileSource.close
+println("The four first moments of this text are: " + moments) 
+}
+else println("no file")
+}
+}
+

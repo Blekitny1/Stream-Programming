@@ -1,0 +1,77 @@
+Aleksander Milach - Laboratory list 11
+
+Assignment 1:
+
+d1 = 1, d2 = 0, d3 = 1, d4 = 1
+p1 = (d1 + d2 + d4) % 2 = (1 + 0 + 1) % 2 = 2 % 2 = 0
+p2 = (d1 + d3 + d4) % 2 = (1 + 1 + 1) % 2 = 3 % 2 = 1
+p3 = (d2 + d3 + d4) % 2 = (0 + 1 + 1) % 2 = 2 % 2 = 0
+(d1, d2, d3, d4, p1, p2, p3) = 1011010
+
+Assignment 2:
+
+d1 = 1, d2 = 0, d3 = 1, d4 = 0
+Assuming d1,...,d4, are correct p1, p2, p3 should be:
+p1 = 1 + 0 + 0 % 2 = 1, but p1 = 0
+p2 = 1 + 1 + 0 % 2 = 0, but p2 = 1
+p3 = 0 + 1 + 0 % 2 = 1, but p3 = 0.
+Three incosistenies in p1, p2, p3 mean, that if there was
+one transmission error it was on d4, and that bit must be
+corrected thus we flip d4, so we decode 
+1010010 as 1011.
+
+Assignment 3:
+
+def hammingCode(n: Int): String = {
+if (n == 0) {
+"0000000"
+} else {
+val adjustLength = "0" * (Integer.numberOfLeadingZeros(n) - 28)
+val data = adjustLength.concat(n.toBinaryString)
+val d = data.map(i => i.toInt - 48)
+val p1 = (d(0) + d(1) + d(3)) % 2
+val p2 = (d(0) + d(2) + d(3)) % 2
+val p3 = (d(1) + d(2) + d(3)) % 2
+data.concat(p1.toString).concat(p2.toString).concat(p3.toString)
+}
+}
+
+def hammingDistance(a: String, b: String) = {
+val len = a.size
+var ctr = 0
+0.to(len - 1).foreach(i => if(a(i) != b(i)) ctr += 1)
+ctr
+}
+
+val codewords = 0.to(15).map(i => hammingCode(i))
+codewords.filter(i => hammingDistance(i, "1011010") == 3)
+
+scala> codewords.filter(i => hammingDistance(i, "101
+1010") == 3)
+val res45: IndexedSeq[String] = Vector(0010011, 0011100, 0101010, 1000110, 1001001, 1110000, 1111111)
+
+Assignment 4:
+
+def polyMul2(a: Int, b: Int): Int = {
+val p1 = a.toBinaryString
+val p2 = b.toBinaryString
+val l1 = p1.size
+val l2 = p2.size
+val ones1 = 0.to(l1 - 1).filter(i => p1(i) == '1')
+val ones2 = 0.to(l2 - 1).filter(i => p2(i) == '1')
+val degreesOfOnes1 = ones1.map(i => l1 - i - 1)
+val degreesOfOnes2 = ones2.map(i => l2 - i - 1)
+val degreeOfResult = l1 + l2 - 1
+var arrayOfIncrements = Array.fill(degreeOfResult)(0)
+degreesOfOnes1.foreach(i => degreesOfOnes2.foreach(j => arrayOfIncrements(i + j) += 1))
+var result = 0
+0.to(degreeOfResult - 1).foreach(i => result += (arrayOfIncrements(i) % 2 * math.pow(2, i).toInt))
+result
+}
+
+scala> polyMul2(11, 11)
+val res57: Int = 69
+
+scala> polyMul2(11, 23)
+val res58: Int = 129
+

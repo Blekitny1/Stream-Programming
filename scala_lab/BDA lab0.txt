@@ -1,0 +1,175 @@
+Assignment 1
+
+object HelloWorld {
+def main(args:Array[String]): Unit = {println("Hello world!")}
+}
+
+C:\Users\Student234758>scalac C:\Users\Student234758\Desktop\scala_lab\HelloWorld.scala.txt
+C:\Users\Student234758>scala HelloWorld
+Hello world!
+
+Assignment 2
+
+object TopKWords {
+import scala.io._
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val file = args(0)
+val k = args(1).toInt
+val fileSource = Source.fromFile(file)
+val words = fileSource.mkString.toLowerCase.split("\\W+")
+val stopwordsFile = Source.fromFile("C:/Users/Student234758/Desktop/scala_lab/stop_words_english.txt")
+val stopwords = stopwordsFile.mkString.split("\\W+")
+val counts = words.filter(w => stopwords.contains(w) == false).groupBy(i => i).mapValues(_.size)
+val x = counts.values.max
+val threshold = Range(1, x + 1).filter(i => counts.filter{case (k,v) => v >= i}.size == k).toList(0)
+stopwordsFile.close
+fileSource.close
+println("the " + k + " most frequent words are: " + counts.filter{case (k,v) => v >= threshold}.keys.toList + " with respective counts " + counts.filter{case (k,v) => v >= threshold}.values.toList)
+}
+else println("no file")
+}
+}
+
+C:\Users\Student234758>scala TopKWords C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\alice29.txt 15
+the 15 most frequent words are: List(mock, thought, head, turtle, hatter, voice, queen, mouse, alice, began, looked, time, gryphon, king, rabbit) with respective counts List(56, 74, 50, 59, 56, 48, 75, 44, 398, 58, 45, 71, 54, 63, 51)
+
+C:\Users\Student234758>scala TopKWords C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\plrabn12.txt 15
+the 15 most frequent words are: List(death, god, thy, good, night, hell, man, heaven, thee, hath, stood, great, day, high, earth) with respective counts List(126, 260, 414, 105, 106, 119, 176, 419, 358, 113, 110, 123, 120, 153, 217)
+
+Assignment 3
+
+object wordCountLoader {
+import scala.io._
+import scala.io.StdIn.readLine
+def main(args:Array[String]):Unit = {
+
+def func1(storedData: Map[String, Int], s: String): Map[String, Int] = {
+val words = s.toLowerCase.split("\\W+")
+val stopwordsFile = Source.fromFile("C:/Users/Student234758/Desktop/scala_lab/stop_words_english.txt")
+val stopwords = stopwordsFile.mkString.split("\\W+")
+val counts = words.filter(w => stopwords.contains(w) == false).groupBy(i => i).mapValues(_.size)
+
+println("Stored data successfully updated. ")
+
+(storedData.keySet ++ counts.keySet).map{i=> (i, storedData.getOrElse(i, 0) + counts.getOrElse(i,0))}.toMap
+}
+
+def func2(storedData: Map[String, Int], filePath: String): Map[String, Int] = {func1(storedData, Source.fromFile(filePath).mkString)}
+
+def func3(storedData: Map[String, Int], k: Int): Unit = {
+val x = storedData.values.max
+val threshold = Range(1, x + 1).filter(i => storedData.filter{case (k,v) => v >= i}.size == k).toList(0)
+println("The " + k + " most frequent words are: " + storedData.filter{case (k,v) => v >= threshold}.keys.toList + " with respective counts " + storedData.filter{case (k,v) => v >= threshold}.values.toList)
+}
+
+def func4(storedData: Map[String, Int], k: Int): Unit = {
+val x = storedData.values.max
+val threshold = Range(1, x + 1).filter(i => storedData.filter{case (k,v) => v >= i}.size == k).toList(0)
+
+val col1 = storedData.filter{case (k,v) => v >= threshold}.keys.toList.map(_.toString)
+val col2 = storedData.filter{case (k,v) => v >= threshold}.values.toList.map(_.toString)
+
+val header = List("Word", "Count")
+println("No func4. ")
+}
+
+var storedData: Map[String, Int] = Map()
+
+val bigString = "For using raw String as input write 1. \n For using txt file as input write 2. \n For printing to console selected number of currently most frequent words write 3. \n For printing to .csv file selected number of currently most frequent words write 4. \n For quitting the application write q. "
+
+var stillInLoop: Boolean = true
+while(stillInLoop){
+println(bigString)
+val n = readLine()
+if (n == "1") {
+    println("Input a String. ")
+    val string1 = readLine()
+    storedData = func1(storedData, string1)
+} else if (n == "2") {
+    println("Input a path to txt file. ")
+    val path = readLine()
+    storedData = func2(storedData, path)
+} else if (n == "3") {
+    println("Input a number of most frequent words to output to console. ")
+    val k = readLine()
+    func3(storedData, k.toInt)
+} else if (n == "4") {
+    println("Input a number of most frequent words to output to .csv file. ")
+    val k = readLine()
+    func4(storedData, k.toInt)
+} else if (n == "q") {
+    println("Thank you for using our application. Goodbye. ")
+    stillInLoop = false
+} else {
+    println("This input does not correspond to any functionality. Please try again. ")
+}
+}
+}
+}
+
+C:\Users\Student234758>scalac C:\Users\Student234758\Desktop\scala_lab\wordCountLoader.scala.txt
+warning: 1 deprecation (since 2.13.0); re-run with -deprecation for details
+1 warning
+
+C:\Users\Student234758>scala wordCountLoader
+For using raw String as input write 1.
+ For using txt file as input write 2.
+ For printing to console selected number of currently most frequent words write 3.
+ For printing to .csv file selected number of currently most frequent words write 4.
+ For quitting the application write q.
+1
+Input a String.
+dog bear snake cat snake bear snake cat snake bear snake
+Stored data successfully updated.
+For using raw String as input write 1.
+ For using txt file as input write 2.
+ For printing to console selected number of currently most frequent words write 3.
+ For printing to .csv file selected number of currently most frequent words write 4.
+ For quitting the application write q.
+3
+Input a number of most frequent words to output to console.
+2
+The 2 most frequent words are: List(snake, bear) with respective counts List(5, 3)
+For using raw String as input write 1.
+ For using txt file as input write 2.
+ For printing to console selected number of currently most frequent words write 3.
+ For printing to .csv file selected number of currently most frequent words write 4.
+ For quitting the application write q.
+2
+Input a path to txt file.
+C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\alice29.txt
+Stored data successfully updated.
+For using raw String as input write 1.
+ For using txt file as input write 2.
+ For printing to console selected number of currently most frequent words write 3.
+ For printing to .csv file selected number of currently most frequent words write 4.
+ For quitting the application write q.
+3
+Input a number of most frequent words to output to console.
+5
+The 5 most frequent words are: List(thought, queen, alice, time, king) with respective counts List(74, 75, 398, 71, 63)
+For using raw String as input write 1.
+ For using txt file as input write 2.
+ For printing to console selected number of currently most frequent words write 3.
+ For printing to .csv file selected number of currently most frequent words write 4.
+ For quitting the application write q.
+2
+Input a path to txt file.
+C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\plrabn12.txt
+Stored data successfully updated.
+For using raw String as input write 1.
+ For using txt file as input write 2.
+ For printing to console selected number of currently most frequent words write 3.
+ For printing to .csv file selected number of currently most frequent words write 4.
+ For quitting the application write q.
+3
+Input a number of most frequent words to output to console.
+10
+The 10 most frequent words are: List(god, thy, man, alice, heaven, thee, high, earth, great, day) with respective counts List(260, 415, 181, 398, 419, 358, 169, 221, 162, 149)
+For using raw String as input write 1.
+ For using txt file as input write 2.
+ For printing to console selected number of currently most frequent words write 3.
+ For printing to .csv file selected number of currently most frequent words write 4.
+ For quitting the application write q.

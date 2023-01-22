@@ -1,0 +1,70 @@
+object wordCountLoader {
+import scala.io._
+import scala.io.StdIn.readLine
+def main(args:Array[String]):Unit = {
+
+def func1(storedData: Map[String, Int], s: String): Map[String, Int] = {
+val words = s.toLowerCase.split("\\W+")
+val stopwordsFile = Source.fromFile("C:/Users/Student234758/Desktop/scala_lab/stop_words_english.txt")
+val stopwords = stopwordsFile.mkString.split("\\W+")
+val counts = words.filter(w => stopwords.contains(w) == false).groupBy(i => i).mapValues(_.size)
+
+println("Stored data successfully updated. ")
+
+(storedData.keySet ++ counts.keySet).map{i=> (i, storedData.getOrElse(i, 0) + counts.getOrElse(i,0))}.toMap
+}
+
+def func2(storedData: Map[String, Int], filePath: String): Map[String, Int] = {func1(storedData, Source.fromFile(filePath).mkString)}
+
+def func3(storedData: Map[String, Int], k: Int): Unit = {
+val x = storedData.values.max
+val threshold = Range(1, x + 1).filter(i => storedData.filter{case (k,v) => v >= i}.size == k).toList(0)
+println("The " + k + " most frequent words are: " + storedData.filter{case (k,v) => v >= threshold}.keys.toList + " with respective counts " + storedData.filter{case (k,v) => v >= threshold}.values.toList)
+}
+
+def func4(storedData: Map[String, Int], k: Int): Unit = {
+val x = storedData.values.max
+val threshold = Range(1, x + 1).filter(i => storedData.filter{case (k,v) => v >= i}.size == k).toList(0)
+
+val col1 = storedData.filter{case (k,v) => v >= threshold}.keys.toList.map(_.toString)
+val col2 = storedData.filter{case (k,v) => v >= threshold}.values.toList.map(_.toString)
+
+val header = List("Word", "Count")
+println("No func4. ")
+}
+
+var storedData: Map[String, Int] = Map()
+
+val bigString = "For using raw String as input write 1. \n For using txt file as input write 2. \n For printing to console selected number of currently most frequent words write 3. \n For printing to .csv file selected number of currently most frequent words write 4. \n For quitting the application write q. "
+
+var stillInLoop: Boolean = true
+while(stillInLoop){
+println(bigString)
+val n = readLine()
+if (n == "1") {
+    println("Input a String. ")
+    val string1 = readLine()
+    storedData = func1(storedData, string1)
+} else if (n == "2") {
+    println("Input a path to txt file. ")
+    val path = readLine()
+    storedData = func2(storedData, path)
+} else if (n == "3") {
+    println("Input a number of most frequent words to output to console. ")
+    val k = readLine()
+    func3(storedData, k.toInt)
+} else if (n == "4") {
+    println("Input a number of most frequent words to output to .csv file. ")
+    val k = readLine()
+    func4(storedData, k.toInt)
+} else if (n == "q") {
+    println("Thank you for using our application. Goodbye. ")
+    stillInLoop = false
+} else {
+    println("This input does not correspond to any functionality. Please try again. ")
+}
+}
+}
+}
+
+

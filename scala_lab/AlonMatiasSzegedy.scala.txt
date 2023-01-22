@@ -1,0 +1,23 @@
+object AlonMatiasSzegedy {
+import scala.io._
+import scala.util.Random._
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val file = args(0)
+val fileSource = Source.fromFile(file)
+val words = fileSource.mkString.toLowerCase.split("\\W+")
+val m = words.size
+val r = 60
+val counts = words.groupBy(i => i).mapValues(_.size).map(i => i._2).toList
+val moments23 = Range(2, 4).map(k => counts.map(i => math.pow(i, k)).toList.sum).toList
+val randomIndicies = (0 until r).map(i => nextInt(m))
+val cis = randomIndicies.map(i => words.slice(i, m).count(w => w == words(i)))
+val result2 = cis.map(c => m * (math.pow(c, 2) - math.pow(c - 1, 2))).sum / r 
+val result3 = cis.map(c => m * (math.pow(c, 3) - math.pow(c - 1, 3))).sum / r
+println("True values of second and third text moments are: " + moments23(0) + " and " + moments23(1) + ".")
+println("Values of these moments estimated by Alon-Matias-Szegedy algorithm are " + result2 + " and " + result3 + ".")
+}
+else println("no file")
+}
+}
