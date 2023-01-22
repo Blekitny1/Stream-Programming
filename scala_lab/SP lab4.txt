@@ -1,0 +1,138 @@
+Aleksander Milach - Laboratory list 4
+
+Assingment 1:
+
+scala> val fibs: LazyList[BigInt] = BigInt(0) #:: BigInt(1) #:: fibs.zip(fibs.tail).map(n => n._1 + n._2)
+val fibs: LazyList[BigInt] = LazyList(<not computed>)
+
+scala> def indexFib(d: Int) : Int = {fibs.takeWhile(_.toString.length < d).toList.length}
+def indexFib(d: Int): Int
+
+scala> indexFib(2)
+val res0: Int = 7
+
+scala> indexFib(3)
+val res1: Int = 12
+
+scala> indexFib(4)
+val res2: Int = 17
+
+scala> indexFib(1000)
+val res3: Int = 4782
+
+Assingment 2: 
+
+def d(n : Int) : Int = {Range(1, (n/2).round + 1).filter(n % _ == 0).sum}
+
+def sumOfAmicables(m: Int) : Int  = {(1 to m).filter(i => i != d(i) && i == d(d(i))).sum}
+
+scala> sumOfAmicables(10000)
+val res18: Int = 31626
+
+Assingiment 3:
+
+object DistinctWords {
+import scala.io._
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val file = args(0)
+val fileSource = Source.fromFile(file)
+val words=fileSource.mkString.toLowerCase.split("\\W+")
+val counts = words.groupBy(i => i).mapValues(_.size)
+fileSource.close
+println("number of distinct words: " + counts.size)
+}
+else println("no file")
+}
+}
+
+C:\Users\Student234758\Desktop\scala_lab>scala DistinctWords C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\alice29.txt
+number of distinct words: 2580
+
+Assingment 4:sc
+
+object TopKWords {
+import scala.io._
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val file = args(0)
+val k = args(1).toInt
+val fileSource = Source.fromFile(file)
+val words=fileSource.mkString.toLowerCase.split("\\W+")
+val counts = words.groupBy(i => i).mapValues(_.size)
+val x = counts.values.max
+val threshold = Range(1, x + 1).filter(i => counts.filter{case (k,v) => v >= i}.size == k).toList(0)
+counts.filter{case (k,v) => v >= threshold}.keys.toList
+
+fileSource.close
+println("the " + k + "most frequent words are: " + counts.filter{case (k,v) => v >= threshold}.keys.toList)
+}
+else println("no file")
+}
+}
+
+C:\Users\Student234758\Desktop\scala_lab>scala TopKWords C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\alice29.txt 5
+the 5most frequent words are: List(it, a, to, and, the)
+
+Assingment 5
+
+object FileDistinctFile {
+import scala.io._
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val file1 = args(0)
+val file2 = args(1)
+val file1Source = Source.fromFile(file1)
+val file2Source = Source.fromFile(file2)
+val words1 = file1Source.mkString.toLowerCase.split("\\W+").toSet
+val words2 = file2Source.mkString.toLowerCase.split("\\W+").toSet
+file1Source.close
+file2Source.close
+println("number of words from first file and not in the other file is : " + words1.diff(words2).size)
+}
+else println("no file")
+}
+}
+
+C:\Users\Student234758\Desktop\scala_lab>scala FileDistinctFile C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\alice29.txt C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\plrabn12.txt
+number of words from first file and not in the other file is : 1087
+
+C:\Users\Student234758\Desktop\scala_lab>scala FileDistinctFile C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\alice29.txt C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\alice29.txt
+number of words from first file and not in the other file is : 0
+
+C:\Users\Student234758\Desktop\scala_lab>scala FileDistinctFile C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\plrabn12.txt C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\plrabn12.txt
+number of words from first file and not in the other file is : 0
+
+C:\Users\Student234758\Desktop\scala_lab>scala FileDistinctFile C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\plrabn12.txt C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\alice29.txt
+number of words from first file and not in the other file is : 7586
+
+Assingment 6
+
+import java.net.URL
+import java.util.zip.GZIPInputStream
+import scala.io.Source
+val genURL = "https://ftp.ncbi.nih.gov/genomes/refseq/"
+val species= "bacteria/Escherichia_coli/reference/GCF_000005845.2_ASM584v2/"
+val dna = "GCF_000005845.2_ASM584v2_genomic.fna.gz"
+val fileURL= new URL(genURL+species+dna)
+val is = fileURL.openStream()
+val gz = new GZIPInputStream(is)
+val seqDNA = Source.fromInputStream(gz).getLines().drop(1).mkString("")
+var freqs = Array.fill(64)(0)
+val codons2 = Array("AAA","AAC","AAG","AAT", "ACA", "ACC", "ACG", "ACT", "AGA","AGC","AGG", "AGT", "ATA", "ATC", "ATG", "ATT", "CAA", "CAC", "CAG", "CAT", "CCA", "CCC", "CCG", "CCT", "CGA", "CGC", "CGG",
+"CGT", "CTA", "CTC", "CTG", "CTT", "GAA", "GAC", "GAG", "GAT", "GCA", "GCC", "GCG", "GCT", "GGA", "GGC", "GGG", "GGT", "GTA", "GTC", "GTG", "GTT", "TAA", "TAC", "TAG", "TAT", "TCA", "TCC", "TCG", "TCT", "TGA", "TGC", "TGG", "TGT", "TTA", "TTC", "TTG", "TTT")
+val l = seqDNA.length
+for(i <- 0 until l/3){
+val slice = seqDNA.slice(3*i, 3*i + 3)
+freqs(codons2.indexOf(slice)) += 1
+}
+codons2 zip freqs.map(3 * _ / l.toDouble)
+
+
+
+
+
+

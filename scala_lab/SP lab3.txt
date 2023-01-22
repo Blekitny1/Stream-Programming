@@ -1,0 +1,57 @@
+Aleksander Milach Laboratory Exercise 3
+
+Assingment 1:
+
+def lengthRight[A](as: List[A]): Int = as.foldRight(0)((_, i) => i + 1)
+
+Assingment 2:
+
+1.
+
+scala> (fM _ andThen gM_)("x")
+val res62: String = g(f(x))
+
+2. I didn't manage to fully understand why is this wrong, however what I am sure of is that with extra parentheses scala parses (gM(_: String, '[', ']')) as function (as we intend). Without them scala parses it as a result of gM funtion with some placeholder called, auch result is string, thus andThen function can't use it as an argument.
+
+Assingment 3
+
+1. def curry[A, B, C](f: (A, B) => C): A => (B => C) = (a: A) => ((b: B) => f(a, b))
+
+2. def f(x: Float, y: Float): Float = x + y*y
+
+3. scala> curry(f)(1)(2) == f(1, 2) 
+val res100: Boolean = true
+
+Assingment 4
+
+1. def uncurry[A, B, C](f: A => B => C): (A, B) => C = ((a: A), (b: B)) => f(a)(b)
+
+2. scala> uncurry(curry(f))(3,4) == f(3,4)
+val res102: Boolean = true
+
+Assingment 5
+
+1. def cmp[A,B,C](f: B => C, g: A => B): A => C = (a: A) => f(g(a))
+
+2. scala> cmp(math.exp _, math.log _)(2)
+val res106: Double = 2.0
+
+3. That is because 'andThen' and 'compose' apply subfunctions in different order  - (f andThen g)(.) could be mathematically written as g(f(.)), whereas (f compose g)(.) is f(g(.)). Since the order of calculations is different, both funtions get different approximation errors between f and g calls, thus the final result is different too. One can check this directly with
+
+val xxxx = x.map(log _ compose exp _)
+val xxxxx = x.map(log _ andThen exp _)
+
+scala> xx == xxxx
+val res109: Boolean = true
+
+scala> xxx == xxxxx
+val res110: Boolean = true
+
+
+
+
+
+
+
+
+

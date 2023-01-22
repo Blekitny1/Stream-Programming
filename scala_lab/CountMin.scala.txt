@@ -1,0 +1,28 @@
+object CountMin {
+import scala.io._
+import scala.util.hashing.MurmurHash3
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+def familyHash(s: String, k: Int): List[Int] = {
+val hs: Int = MurmurHash3.stringHash(s)
+val (high, low) = (hs >>> 16, hs & 0xFFFF)
+List.tabulate(k)(j => (high + j * low) & 0xFFFF)
+}
+
+val file = args(0)
+val fileSource = Source.fromFile(file)
+val words = fileSource.mkString.toLowerCase.split("\\W+")
+val distinctWords = words.toSet.toList
+val n = distinctWords.size
+val k = 4
+var arrayOfCounts = Array.ofDim[Int](math.pow(2, 16).toInt, k)
+words.foreach(w => Range(0, k).foreach(i => arrayOfCounts(familyHash(w, k)(i))(i) += 1))
+val wordsMinCounts = distinctWords.map(w => Range(0, k).map(i => arrayOfCounts(familyHash(w, k)(i))(i)).toList.min)
+val wordsTrueFreqs = distinctWords.map(w => words.count(i => i == w))
+val wrongCountedWords = Range(0, n).filter(i => wordsMinCounts(i) != wordsTrueFreqs(i)).size
+println(wrongCountedWords / n)
+}
+else println("no file")
+}
+}

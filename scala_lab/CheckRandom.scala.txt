@@ -1,0 +1,17 @@
+object CheckRandom {
+import scala.io._
+import scala.util.Random._
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val p = args(0).toInt
+val m = math.pow(2, 10).toInt
+val alpha = 0.7213
+val numbers = List.fill(math.pow(2, p).toInt)(nextInt())
+val zjs = Range(0, m).map(i => numbers.filter(j => ((j >> 22) + 512) == i).map(k => Integer.numberOfLeadingZeros(k << 10) + 1).max).map(l => math.pow(2, l).toInt)
+println("By the probability theory, the approximate number of empty numbers is " + math.pow(2, 32) * math.exp(- math.pow(2, p - 32)))
+println("If we use HLL, the approximate number of empty numbers is " + (math.pow(2, 32) - alpha*m*m/zjs.map(i => 1 / i.toDouble).sum))
+}
+else println("no file")
+}
+}

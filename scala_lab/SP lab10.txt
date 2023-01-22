@@ -1,0 +1,133 @@
+Aleksander Milach - Laboratory List 10
+
+Probably not the final version of my solutions. ~12.05 21:03
+
+Assingnment 1:
+
+object AlonMatiasSzegedy {
+import scala.io._
+import scala.util.Random._
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val file = args(0)
+val fileSource = Source.fromFile(file)
+val words = fileSource.mkString.toLowerCase.split("\\W+")
+val m = words.size
+val r = 60
+val counts = words.groupBy(i => i).mapValues(_.size).map(i => i._2).toList
+val moments23 = Range(2, 4).map(k => counts.map(i => math.pow(i, k)).toList.sum).toList
+val randomIndicies = (0 until r).map(i => nextInt(m))
+val cis = randomIndicies.map(i => words.slice(i, m).count(w => w == words(i)))
+val result2 = cis.map(c => m * (math.pow(c, 2) - math.pow(c - 1, 2))).sum / r 
+val result3 = cis.map(c => m * (math.pow(c, 3) - math.pow(c - 1, 3))).sum / r
+println("True values of second and third text moments are: " + moments23(0) + " and " + moments23(1) + ".")
+println("Values of these moments estimated by Alon-Matias-Szegedy algorithm are " + result2 + " and " + result3 + ".")
+}
+else println("no file")
+}
+}
+
+C:\Users\Student234758>scala AlonMatiasSzegedy C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\alice29.txt
+True values of second and third text moments are: 7648302.0 and 6.914019604E9.
+Values of these moments estimated by Alon-Matias-Szegedy algorithm are 8799725.733333332 and 9.5507756734E9.
+
+The larger the number of random indicies were chosen (r = 600, 1000), the estimations were more accurate. 
+
+Assingnment 2:
+
+def meanInequalities(): Unit = {
+import scala.util.Random._
+val m = math.pow(2, 20).toInt + 1
+val intUpperBound = math.pow(2, 31).toInt - 1
+val ints = List.fill(m)(nextInt(intUpperBound))
+val median = ints.sortWith(_ < _)(m.toInt / 2)
+val mean = 1.0 * ints.sum / m
+val quad = math.sqrt(ints.map(i => 1.0 * i * i / m).sum)
+val cubic = math.pow(ints.map(i => 1.0 * i * i * i / m).sum, 1.0/3)
+println("Median = " + median)
+println("Mean = " + mean)
+println("Quadratic mean = " + quad)
+println("Cubic mean = " + cubic)
+if (mean < quad && quad < cubic) {println("The chain of inequalities between power means holds.")}
+} 
+
+scala> meanInequalities()
+Median = 1073228070
+Mean = 1773.1188782511917
+Quadratic mean = 1.239198553179695E9
+Cubic mean = 1.3522268716941967E9
+The chain of inequalities between power means holds.
+
+Assingnment 3:
+
+def bienaymeChebyshev(): Unit = {
+import scala.util.Random._
+val n = 1000000
+val k = 3
+val nrOfRuns = 1000
+val experiment = (0 until nrOfRuns).map(i => List.fill(n)(nextGaussian()).count(_.abs >= k) * 1.0 / n)
+val result = experiment.sum / nrOfRuns
+println("The probability on the lhs of the Eq. (1) avaraged over " + nrOfRuns + " runs is " + result)
+}
+
+scala> bienaymeChebyshev()
+The probability on the lhs of the Eq. (1) avaraged over 1000 runs is 0.0026974739999999975
+
+Assingnment 4:
+
+def chernovBound(): Unit = {
+import scala.util.Random._
+val n = 600
+val delta = 1.0 / 5
+val p = 1.0 / 6
+val nrOfRuns = 1000
+val experiment = (0 until nrOfRuns).count(i => List.fill(n)(math.floorMod(nextInt(), 6) / 5).sum <= (1 - delta)  * p * n)
+val result = 1.0 * experiment / nrOfRuns
+val rhs = math.exp(-1.0 / 2 * delta * delta * p * n)
+println("The probability on the lhs of the Eq. (2) computed on " + nrOfRuns + " runs is " + result)
+if (result < rhs) {println("The Chernov bound holds, since " + result + " < " + rhs + ".")}
+}
+
+scala> chernovBound()
+The probability on the lhs of the Eq. (2) computed on 1000 runs is 0.018
+The Chernov bound holds, since 0.018 < 0.13533528323661262.
+
+Assingnment 5:
+
+def medianStuff(): Unit = {
+import scala.util.Random._
+
+def median(lst: List[Double]): Double = {
+val sorted = lst.sortWith(_ < _)
+val len = sorted.size
+(sorted(len / 2 - 1) + sorted(len / 2)) / 2.0
+}
+
+val s = 600
+val mi = 0.5
+val nrOfRuns = 1000000
+var lhsCounter = 0
+var rhsCounter = 0
+
+(0 until nrOfRuns).map{i =>
+val doubles = List.fill(s)(nextDouble())
+if ((median(doubles) - mi).abs > 1.0 / 6) {lhsCounter += 1}
+if (doubles.map(d => if((d - mi).abs <= 1.0 / 6) 1 else 0).sum < (s / 2)) {rhsCounter += 1}
+}
+
+println(lhsCounter / nrOfRuns.toDouble)
+println(rhsCounter / nrOfRuns.toDouble)
+}
+
+scala> medianStuff()
+0.013791
+0.9893
+
+for s = 50 and nr_reps = 10^6
+
+scala> medianStuff()
+0.0
+1.0
+
+for s = 600 and nr_reps = 10^6

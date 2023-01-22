@@ -1,0 +1,40 @@
+object BloomFilter {
+import scala.io._
+import scala.util.hashing.MurmurHash3
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+
+def familyHash(s: String, k: Int): List[Int] = {
+val hs: Int = MurmurHash3.stringHash(s)
+val (high, low) = (hs >>> 16, hs & 0xFFFF)
+List.tabulate(k)(j => (high + j * low) & 0xFFFF)
+}
+
+val file1 = args(0)
+val file2 = args(1)
+val file1Source = Source.fromFile(file1)
+val file2Source = Source.fromFile(file2)
+val words1 = file1Source.mkString.toLowerCase.split("\\W+").toSet
+val words2 = file2Source.mkString.toLowerCase.split("\\W+").toSet
+val words3 = words2.diff(words1)
+val m = math.pow(16, 4).toInt
+val n = words1.size
+val k = 4
+var myFilter = Array.fill(m)(false)
+words1.foreach{w => familyHash(w, k).foreach{j => myFilter(j) = true}}
+def wordInFilter(w: String): Boolean = {familyHash(w, k).map(i => myFilter(i)).foldRight(true)(_ && _)}
+val falsePositives = words3.filter{w => wordInFilter(w)}.toList
+val actualFalsePositiveRate = falsePositives.size.toDouble / words3.size
+val theoreticalFalsePositiveRate = math.pow(1 - math.exp(- n * k / m.toDouble), k)
+val xa = myFilter.filter(i => i == true).size
+val estOfNumberOfDistincts = - m.toDouble / k * math.log(1 - xa / m.toDouble)
+println("False positives " + falsePositives)
+println("The actual false positive rate is: " + actualFalsePositiveRate)
+println("The theoretical false positive rate is: " + theoreticalFalsePositiveRate)
+println("The Bloom Filter estimate of number of distinct words in first file is: " + estOfNumberOfDistincts + ", whereas the true number of them is " + n)
+
+}
+else println("no file")
+}
+}

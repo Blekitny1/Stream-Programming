@@ -1,0 +1,227 @@
+Assingment 1:
+
+val range = 2 to 100
+
+(*) for (i <- range if i%2 !=0; if i%3 !=0; if i%5 !=0) yield(i * i)
+(^) for (i <- range if i%2 !=0; j <- range if j%2==0) yield(i, j)
+
+Applying hint 3 to (*):
+
+(**) for(i <- range.filter(i => i%2 != 0).filter(i => i%3 != 0).filter(i => i%5 !=0)) yield(i * i)
+
+Applying hint 2 to (**):
+
+range.filter(i => i%2 != 0).filter(i => i%3 != 0).filter(i => i%5 !=0).map(i => i * i)
+
+scala> range.filter(i => i%2 != 0).filter(i => i%3 != 0).filter(i => i%5 !=0).map(i => i * i)
+val res3: IndexedSeq[Int] = Vector(49, 121, 169, 289, 361, 529, 841, 961, 1369, 1681, 1849, 2209, 2401, 2809, 3481, 3721, 4489, 5041, 5329, 5929, 6241, 6889, 7921, 8281, 9409)
+
+Applying hint 3 to (^):
+
+(^^) for (i <- range.filter(i => i%2 != 0); j <- range.filter(j => j%2 == 0)) yield(i, j)
+
+Applying hint 4 to (^^):
+
+(^^^) range.filter(i => i%2 != 0).flatMap(i => for(j <- range.filter(j => j%2 == 0)) yield(i, j))
+
+Applying hint 2 to (^^^):
+
+range.filter(i => i%2 != 0).flatMap(i => range.filter(j => j%2 == 0).map(j => (i, j)))
+
+scala> range.filter(i => i%2 != 0).flatMap(i => range.filter(j => j%2 == 0).map(j => (i, j)))
+val res7: IndexedSeq[(Int, Int)] = Vector((3,2), (3,4), (3,6), (3,8), (3,10), (3,12), (3,14), (3,16), (3,18), (3,20), (3,22), (3,24), (3,26), (3,28), (3,30), (3,32), (3,34), (3,36), (3,38), (3,40), (3,42), (3,44), (3,46), (3,48), (3,50), (3,52), (3,54), (3,56), (3,58), (3,60), (3,62), (3,64), (3,66), (3,68), (3,70), (3,72), (3,74), (3,76), (3,78), (3,80), (3,82), (3,84), (3,86), (3,88), (3,90), (3,92), (3,94), (3,96), (3,98), (3,100), (5,2), (5,4), (5...
+
+Assingment 3:
+
+With code from Assingment 4 from List 4 this task becomes very easy.
+
+object TextMoments {
+import scala.io._
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val file = args(0)
+val fileSource = Source.fromFile(file)
+val words=fileSource.mkString.toLowerCase.split("\\W+")
+val counts = words.groupBy(i => i).mapValues(_.size).map(i => i._2).toList
+val moments = Range(0, 4).map(k => counts.map(i => math.pow(i, k)).toList.sum)
+fileSource.close
+println("The four first moments of this text are: " + moments) 
+}
+else println("no file")
+}
+}
+
+C:\Users\Student234758>scala TextMoments C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\alice29.txt
+The four first moments of this text are: Vector(2580.0, 27334.0, 7648302.0, 6.914019604E9)
+
+Assingment 4:
+
+The 0-th moment of text is sum of the counts of each word to the power of 0, thus each distinct word is counted as 1, so it it simply the number of distinct words in text (the first element of result from previous task is the same as result of Assingment 3 from list 4). The 1-st moment of the text is just a sum of counts of each distinct word, which is the number of (non-distinct) words in the text.
+
+Assingment 5:
+
+Given m0 (length of v), and m1 (sum of v), min max (sum of v^2)
+Distribution of words maximising is [m1 - m0 + 1, 1, 1, ..., 1], thus the upper bound for m2 is ubm2(m0, m1) = (m1 - m0 + 1)^2 + m0 - 1
+Distribution of words minimising is the uniform distribution:
+[m1/m0, ..., m1/m0, m1/m0 + 1, ..., m1/m0 + 1]
+                       {m1 % m0 times}
+The true lower bound can be lower bounded by the m2 corresponding to distribution [m1/m0, m1/m0, ... m1/m0] for which lbm2(m0, m1) = m0 * m1^2/m0^2 = m1^2 / m0
+
+For example, let m0 = 6, m1 = 14, than:
+
+[9,1,1,1,1,1] maxm2 = 81 + 5 = 86
+[2,2,2,2,3,3] minm2 = 4*4 + 9*2 = 34
+[2,2,2,2,2,2] approxminm2 = 14*14 / 6 = 196 / 6 = 32,(6)
+
+I will simply modify the code from the previous task.
+
+object SecondTextMomentBounds {
+import scala.io._
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val file = args(0)
+val fileSource = Source.fromFile(file)
+val words=fileSource.mkString.toLowerCase.split("\\W+")
+val counts = words.groupBy(i => i).mapValues(_.size).map(i => i._2).toList
+val x = Range(0, 3).map(k => counts.map(i => math.pow(i, k)).toList.sum).toList
+val (m0, m1, m2) = x match { case List(a, b, c) => (a, b, c) }
+val approxLowerBound = m1 * m1 / m0
+val upperBound = (m1 - m0 + 1) * (m1 - m0 + 1) + m0 - 1
+
+fileSource.close
+println("The approximation of lower bound for second text moment is: " + approxLowerBound + ", which is smaller, than the true second text moment " + m2 + ", which is smaller than the upper bound " + upperBound) 
+}
+else println("no file")
+}
+}
+
+
+C:\Users\Student234758>scala SecondTextMomentBounds C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\alice29.txt
+The approximation of lower bound for second text moment is: 289592.07596899226, which is smaller, than the true second text moment 7648302.0, which is smaller than the upper bound 6.12812604E8
+
+Assingment 6:
+
+import scala.util.Random._
+
+def findMax(x: Int, y: Int): Int = {Integer.numberOfLeadingZeros(x) max Integer.numberOfLeadingZeros(y)}
+
+def stochasticCount(n :Double) = {
+val v = List.fill(n)(nextInt())
+println(v)
+v.reduceLeft(findMax)
+}
+
+scala> stochasticCount(math.pow(2, 20))
+val res19: Int = 28
+
+scala> stochasticCount(math.pow(2, 20))
+val res20: Int = 28
+
+scala> stochasticCount(math.pow(2, 20))
+val res21: Int = 32
+
+scala> stochasticCount(math.pow(2, 20))
+val res22: Int = 27
+
+scala> stochasticCount(math.pow(2, 20))
+val res23: Int = 27
+
+scala> stochasticCount(math.pow(2, 20))
+val res24: Int = 26
+
+scala> stochasticCount(math.pow(2, 20))
+val res25: Int = 31
+
+scala> stochasticCount(math.pow(2, 28))
+val res26: Int = 29
+
+scala> stochasticCount(math.pow(2, 28))
+val res27: Int = 30
+
+scala> stochasticCount(math.pow(2, 28))
+val res28: Int = 27
+
+scala> stochasticCount(math.pow(2, 28))
+val res29: Int = 32
+
+scala> stochasticCount(math.pow(2, 28))
+val res30: Int = 27
+
+scala> stochasticCount(math.pow(2, 28))
+val res31: Int = 27
+
+scala> stochasticCount(math.pow(2, 24))
+val res32: Int = 27
+
+scala> stochasticCount(math.pow(2, 24))
+val res33: Int = 27
+
+scala> stochasticCount(math.pow(2, 24))
+val res34: Int = 27
+
+scala> stochasticCount(math.pow(2, 24))
+val res35: Int = 32
+
+scala> stochasticCount(math.pow(2, 24))
+val res36: Int = 27
+
+scala> stochasticCount(math.pow(2, 24))
+val res37: Int = 30
+
+scala> stochasticCount(math.pow(2, 24))
+val res38: Int = 27
+
+scala> stochasticCount(math.pow(2, 24))
+val res39: Int = 30
+
+scala> stochasticCount(math.pow(2, 24))
+val res40: Int = 28
+
+scala> stochasticCount(math.pow(2, 24))
+val res41: Int = 27
+
+scala> stochasticCount(math.pow(2, 24))
+val res42: Int = 27
+
+Assingment 7:
+
+val f = (i:Int) => Option(i * i)
+val g = (i:Int) => Option(i * i * i)
+
+Associavity:
+
+scala> (Some(2) flatMap f) flatMap g
+val res49: Option[Int] = Some(64)
+
+scala> Some(2) flatMap (x => f(x) flatMap g)
+val res50: Option[Int] = Some(64)
+
+scala> None flatMap (x => f(x) flatMap g)
+val res51: Option[Int] = None
+
+scala> None flatMap (x => f(x) flatMap g)
+val res52: Option[Int] = None
+
+Left unit:
+
+scala> Some(2) flatMap f
+val res55: Option[Int] = Some(4)
+
+scala> f(2)
+val res56: Option[Int] = Some(4)
+
+scala> None flatMap f
+val res57: Option[Int] = None
+
+Right unit:
+
+scala> Some(2) flatMap (x => Some(x))
+val res62: Option[Int] = Some(2)
+
+scala> None flatMap (x => Some(x))
+val res63: Option[Nothing] = None
+
+
+

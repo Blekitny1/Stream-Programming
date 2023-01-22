@@ -1,0 +1,213 @@
+Aleksander Milach - Laboratory list 5
+
+Assingnment 1:
+
+1.
+
+object TailRecFactorial {
+import scala.annotation.tailrec
+def tailFactorial(n: Int): Int = {
+@tailrec
+def go(acc: Int, n: Int): Int = {
+if (n <= 1) acc
+else go(n * acc, n - 1)
+}
+go(1, n)
+}
+//@tailrec
+def factorial(n: Int): Int = {
+if (n <= 1) 1
+else n * factorial(n-1)
+}
+def main(args:Array[String]):Unit = {
+var n = 1
+try {
+n = args(0).toInt
+println(factorial(n))
+println(tailFactorial(n))
+} catch {
+case e: NumberFormatException => println("The input n is not a valid integer (Int) number. ")
+}
+}
+}
+
+C:\Users\Student234758>scala TailRecFactorial 5
+120
+120
+
+C:\Users\Student234758>scala TailRecFactorial five
+The input n is not a valid integer (Int) number.
+
+2.
+
+C:\Users\Student234758>scalac C:\Users\Student234758\Desktop\scala_lab\tailRec.scala.txt
+C:\Users\Student234758\Desktop\scala_lab\tailRec.scala.txt:14: error: could not optimize @tailrec annotated method factorial: it contains a recursive call not in tail position
+else n * factorial(n-1)
+       ^
+1 error
+
+3. 
+
+object TailRecFactorial {
+import scala.annotation.tailrec
+def tailFactorial(n: Int): BigInt = {
+@tailrec
+def go(acc: BigInt, n: Int): BigInt = {
+if (n <= 1) acc
+else go(n * acc, n - 1)
+}
+go(1, n)
+}
+//@tailrec
+def factorial(n: Int): BigInt = {
+if (n <= 1) 1
+else n * factorial(n-1)
+}
+def main(args:Array[String]):Unit = {
+var n = 1
+try {
+n = args(0).toInt
+println(factorial(n))
+println(tailFactorial(n))
+} catch {
+case e: NumberFormatException => println("The input n is not a valid integer (Int) number. ")
+}
+}
+}
+
+
+4. The minimal n causing Stack Overflow Error for ordinary factorial algorithm is 9939. (The tail factorial algorithm 'survived' for n = 500000.)
+
+C:\Users\Student234758>scala TailRecFactorial 9939
+Exception in thread "main" java.lang.StackOverflowError
+        at scala.math.BigInt$.getCached(BigInt.scala:35)
+        at scala.math.BigInt$.apply(BigInt.scala:50)
+        at scala.math.BigInt$.int2bigInt(BigInt.scala:118)
+        at TailRecFactorial$.factorial(tailRec.scala.txt:14)
+
+Assingment 2:
+
+def tailFibs(n: Int): Int = {
+import scala.annotation.tailrec
+@tailrec
+def go(n: Int, a: Int, b: Int): Int = {
+if (n <= 0) b
+else {
+go(n - 1, a = a + b, b = a)
+}
+}
+go(n, 1, 0)
+}
+
+scala> tailFibs(10)
+val res0: Int = 55
+
+Assingment 3:
+
+import scala.io._
+import scala.util.hashing.MurmurHash3
+val file = "C:/Users/Student234758/Desktop/scala_lab/canterbury-corpus/canterbury/alice29.txt"
+val fileSource = Source.fromFile(file)
+val stringAlice = fileSource.mkString
+stringAlice.sliding(24).find(s => {MurmurHash3.stringHash(s) == 320915200})
+
+scala> stringAlice.sliding(24).find(s => {MurmurHash3.stringHash(s) == 320915200})
+val res1: Option[String] = Some(Curiouser and curiouser!)
+
+Assingment 4:
+
+def findByHash(n: Int): Unit = {
+import scala.io._
+import scala.util.hashing.MurmurHash3
+val file = "C:/Users/Student234758/Desktop/scala_lab/canterbury-corpus/canterbury/alice29.txt"
+val fileSource = Source.fromFile(file)
+val stringAlice = fileSource.mkString
+val res = stringAlice.sliding(24).find(s => {MurmurHash3.stringHash(s) == n})
+res match {
+case Some(_) => println(res.toString)
+case None => println("No phrase hashed into that number was found.")
+}
+}
+
+scala> findByHash(320915200)
+Some(Curiouser and curiouser!)
+
+scala> findByHash(320915201)
+No phrase hashed into that number was found.
+
+Assingment 5
+
+1.
+
+def reduceInt(hash: Int): String = {
+val k = 256
+val b = BigInt(hash + 1) + BigInt(2147483647)
+"" + (b/k/k/k%k).toChar + (b/k/k%k).toChar + (b/k%k).toChar + (b%k).toChar}
+
+Function reduceInt() takes an int domain [-2^31, 2^31-1] and shifts it into nonnegative numbers, so then the % does not cause any issues, than it is easy to transform it into 4 char string, just like changing a base of number to base 256.
+
+2. 
+
+val seqNi: LazyList[Int] = LazyList.iterate(MurmurHash3.stringHash("AAAA"))(i => MurmurHash3.stringHash(reduceInt(i)))
+
+scala> seqNi(1)
+val res59: Int = -1654058541
+
+scala> MurmurHash3.stringHash(reduceInt(seqNi(0)))
+val res60: Int = -1654058541
+
+scala> seqNi(2)
+val res61: Int = 674501062
+
+scala> MurmurHash3.stringHash( reduceInt(MurmurHash3.stringHash(reduceInt(seqNi(0)))))
+val res62: Int = 674501062
+
+3. 
+
+In order to find P_100 we just have to get n_99 from LazyList above and apply ReduceInt() on it. 
+
+scala> reduceInt(seqNi(99))
+val res64: String = u?s?
+
+scala> reduceInt(seqNi(99))(0)
+val res65: Char = u
+
+scala> reduceInt(seqNi(99))(1)
+val res66: Char = ?
+
+scala> reduceInt(seqNi(99))(2)
+val res67: Char = s
+
+scala> reduceInt(seqNi(99))(3)
+val res68: Char = ?
+
+scala> reduceInt(seqNi(99))(3).toInt
+val res69: Int = 26
+
+scala> reduceInt(seqNi(99))(2).toInt
+val res70: Int = 115
+
+scala> reduceInt(seqNi(99))(1).toInt
+val res71: Int = 144
+
+scala> reduceInt(seqNi(99))(0).toInt
+val res72: Int = 117
+
+Assingnment 6:
+
+def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = {
+	(a, b) match {
+		case (Some(u), Some(v)) => Some(f(u, v))
+		case _ => None
+	}
+}
+
+scala> def f(x: Int, y: Int) = x + y*y
+def f(x: Int, y: Int): Int
+
+scala> map2(Some(2), Some(3))(f)
+val res3: Option[Int] = Some(11)
+
+scala> map2(Some(2), None)(f)
+val res4: Option[Int] = None
+

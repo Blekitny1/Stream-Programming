@@ -1,0 +1,18 @@
+
+object CheckRandom {
+import scala.io._
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val p = args(0).toInt
+val m = math.pow(2, 10).toInt
+val alpha = 0.7213
+def arrMax (arr: Array[Int]): Int = { if (arr.nonEmpty) arr.max else 0 }
+val numbers = List.fill(math.pow(2, p).toInt)(nextInt())
+val zjs = Range(0, m).map(i => numbers.filter(j => math.floorMod(j, m) == i).map(k => Integer.numberOfLeadingZeros(k) + 1)).map(lst => arrMax(lst)).map(l => math.pow(2, l).toInt)
+println("By the probability theory, the approximate number of empty buckets is " + math.pow(2, p) * math.exp(- math.pow(2, 32 - p))
+println("If we use HLL, the approximate number of empty buckets is " + math.pow(2, p).toInt - alpha*m*m/zjs.map(i => 1 / i.toDouble).sum)
+}
+else println("no file")
+}
+}

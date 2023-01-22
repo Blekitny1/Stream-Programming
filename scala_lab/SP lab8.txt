@@ -1,0 +1,116 @@
+Aleksander Milach - Laboratory list 8
+
+Assingnment 1:
+
+object HLLBucket2 {
+import scala.io._
+import scala.util.hashing.MurmurHash3
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val file = args(0)
+val fileSource = Source.fromFile(file)
+val words = fileSource.mkString.toLowerCase.split("\\W+")
+val m = math.pow(2, 10).toInt
+val alpha = 0.7213 / (1 + 1.079 / m)
+def arrMax (arr: Array[Int]): Int = { if (arr.nonEmpty) arr.max else 0 }
+val numbers = words.map(w => MurmurHash3.stringHash(w))
+val zjs = Range(0, m).map(i => numbers.filter(j => ((j >> 22) + 512) == i).map(k => Integer.numberOfLeadingZeros(k << 10) + 1)).map(lst => arrMax(lst)).map(l => math.pow(2, l).toInt)
+println("The exact number of distinct words is " + words.groupBy(i => i).size)
+println("If we use HLL, the approximate number of distinct words is " + alpha*m*m/zjs.map(i => 1 / i.toDouble).sum)
+}
+else println("no file")
+}
+}
+
+C:\Users\Student234758>scalac C:\Users\Student234758\Desktop\scala_lab\HLLBucket2.scala.txt
+
+C:\Users\Student234758>scala HLLBucket2 C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\large\bible.txt
+The exact number of distinct words is 12473
+If we use HLL, the approximate number of distinct words is 12286.344300438112
+
+C:\Users\Student234758>scala HLLBucket2 C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\alice29.txt
+The exact number of distinct words is 2580
+If we use HLL, the approximate number of distinct words is 2724.098950682595
+
+object HLLBucket {
+import scala.io._
+import scala.util.hashing.MurmurHash3
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val file = args(0)
+val fileSource = Source.fromFile(file)
+val words = fileSource.mkString.toLowerCase.split("\\W+")
+val m = math.pow(2, 10).toInt
+val alpha = 0.7213 / (1 + 1.079 / m)
+def arrMax (arr: Array[Int]): Int = { if (arr.nonEmpty) arr.max else 0 }
+val numbers = words.map(w => MurmurHash3.stringHash(w))
+val zjs = Range(0, m).map(i => numbers.filter(j => math.floorMod(j, m) == i).map(k => Integer.numberOfLeadingZeros(k) + 1)).map(lst => arrMax(lst)).map(l => math.pow(2, l).toInt)
+println("The exact number of distinct words is " + words.groupBy(i => i).size)
+println("If we use HLL, the approximate number of distinct words is " + alpha*m*m/zjs.map(i => 1 / i.toDouble).sum)
+}
+else println("no file")
+}
+}
+
+C:\Users\Student234758>scalac C:\Users\Student234758\Desktop\scala_lab\HLLBucket.scala.txt
+
+C:\Users\Student234758>scala HLLBucket C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\alice29.txt
+The exact number of distinct words is 2580
+If we use HLL, the approximate number of distinct words is 2596.4385416313416
+
+C:\Users\Student234758>scala HLLBucket C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\large\bible.txt
+The exact number of distinct words is 12473
+If we use HLL, the approximate number of distinct words is 13048.641454456638
+
+Assingnment 2:
+
+object CheckRandom {
+import scala.io._
+import scala.util.Random._
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val p = args(0).toInt
+val m = math.pow(2, 10).toInt
+val alpha = 0.7213
+val numbers = List.fill(math.pow(2, p).toInt)(nextInt())
+val zjs = Range(0, m).map(i => numbers.filter(j => ((j >> 22) + 512) == i).map(k => Integer.numberOfLeadingZeros(k << 10) + 1).max).map(l => math.pow(2, l).toInt)
+println("By the probability theory, the approximate number of empty numbers is " + math.pow(2, 32) * math.exp(- math.pow(2, p - 32)))
+println("If we use HLL, the approximate number of empty numbers is " + (math.pow(2, 32) - alpha*m*m/zjs.map(i => 1 / i.toDouble).sum))
+}
+else println("no file")
+}
+}
+
+C:\Users\Student234758>scala CheckRandom 24
+By the probability theory, the approximate number of empty numbers is 4.2782228053749676E9
+If we use HLL, the approximate number of empty numbers is 4.27861399823264E9
+
+C:\Users\Student234758>scala CheckRandom 26
+By the probability theory, the approximate number of empty numbers is 4.2283799999667535E9
+If we use HLL, the approximate number of empty numbers is 4.2270537675771112E9
+
+For higher p I still get heap space error.
+
+Assingnment 3:
+
+object FileDistinctFile {
+import scala.io._
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val file1 = args(0)
+val file2 = args(1)
+val file1Source = Source.fromFile(file1)
+val file2Source = Source.fromFile(file2)
+val words1 = file1Source.mkString.toLowerCase.split("\\W+").toSet
+val words2 = file2Source.mkString.toLowerCase.split("\\W+").toSet
+file1Source.close
+file2Source.close
+println("number of words from first file and not in the other file is : " + words1.diff(words2).size)
+}
+else println("no file")
+}
+}

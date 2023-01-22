@@ -1,0 +1,270 @@
+Aleksander Milach - Laboratory list 9
+
+Assingnment 1
+
+def hammingWeight(n: Int): Int = {
+n.toBinaryString.toList.map(i => i.toInt - '0'.toInt).sum
+}
+
+scala> hammingWeight(2048)
+val res16: Int = 1
+
+scala> hammingWeight(1729*1729)
+val res18: Int = 11
+
+Assingnment 2
+
+def hammingDistance(a: Int, b: Int) = {hammingWeight(a ^ b)}
+
+scala> hammingDistance(1729, 1729*1729)
+val res24: Int = 10
+
+scala> hammingDistance(1, 2049)
+val res26: Int = 1
+
+Assingnment 3
+
+object BloomFilter {
+import scala.io._
+import scala.util.hashing.MurmurHash3
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+
+def familyHash(s: String, k: Int): List[Int] = {
+val hs: Int = MurmurHash3.stringHash(s)
+val (high, low) = (hs >>> 16, hs & 0xFFFF)
+List.tabulate(k)(j => (high + j * low) & 0xFFFF)
+}
+
+val file1 = args(0)
+val file2 = args(1)
+val file1Source = Source.fromFile(file1)
+val file2Source = Source.fromFile(file2)
+val words1 = file1Source.mkString.toLowerCase.split("\\W+").toSet
+val words2 = file2Source.mkString.toLowerCase.split("\\W+").toSet
+val words3 = words2.diff(words1)
+val m = math.pow(16, 4).toInt
+val n = words1.size
+val k = 4
+var myFilter = Array.fill(m)(false)
+words1.foreach{w => familyHash(w, k).foreach{j => myFilter(j) = true}}
+def wordInFilter(w: String): Boolean = {familyHash(w, k).map(i => myFilter(i)).foldRight(true)(_ && _)}
+val falsePositives = words3.filter{w => wordInFilter(w)}.toList
+val actualFalsePositiveRate = falsePositives.size.toDouble / words3.size
+val theoreticalFalsePositiveRate = math.pow(1 - math.exp(- n * k / m.toDouble), k)
+val xa = myFilter.filter(i => i == true).size
+val estOfNumberOfDistincts = - m.toDouble / k * math.log(1 - xa / m.toDouble)
+println("False positives " + falsePositives)
+println("The actual false positive rate is: " + actualFalsePositiveRate)
+println("The theoretical false positive rate is: " + theoreticalFalsePositiveRate)
+println("The Bloom Filter estimate of number of distinct words in first file is: " + estOfNumberOfDistincts + ", whereas the true number of them is " + n)
+
+}
+else println("no file")
+}
+}
+
+C:\Users\Student234758>scala BloomFilter C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\alice29.txt C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\large\bible.txt
+False positives List(slip, italy, dumb, flux, noontide)
+The actual false positive rate is: 4.5708017186214464E-4
+The theoretical false positive rate is: 4.5062600370376286E-4
+The Bloom Filter estimate of number of distinct words in first file is: 2568.159956175874, whereas the true number of them is 2580
+
+C:\Users\Student234758>scala BloomFilter C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\large\bible.txt C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\alice29.txt
+False positives List(expressing, crouched, educations, various, argue, ledge, ugly, pepper, poker, ventured, rises, thatched, belt, contradicted, dutchess, audibly, tiny, screamed, riddles, twinkle, produced, twinkled, carrier, snappishly, shared, checked, editions, coaxing, soo, swimming, somewhere, rabbits, chimneys, uglification, clubs, orange, smile, comes, puzzling, grunted, english, crossly, overhead, reduced, sage, seriously, someone, nervous, ridge, worried, oyster, processions, tart, wider, fun, dreamy, adjourn, calmly, isn, ambition, pet, hint, occurred, lory, picture, smiling, uncorked, trials, blasts, smaller, custard, whistle, welcome, finds, axis, pebbles, eh, frowning, terms, sneezing, suppressed, shouldn, growls, saucepan, pretend, shillings, does, barrowful)
+The actual false positive rate is: 0.0841300191204589
+The theoretical false positive rate is: 0.08066851563732258
+The Bloom Filter estimate of number of distinct words in first file is: 12473.765024220624, whereas the true number of them is 12473
+
+Assingnment 4:
+
+object CountMin {
+import scala.io._
+import scala.util.hashing.MurmurHash3
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+def familyHash(s: String, k: Int): List[Int] = {
+val hs: Int = MurmurHash3.stringHash(s)
+val (high, low) = (hs >>> 16, hs & 0xFFFF)
+List.tabulate(k)(j => (high + j * low) & 0xFFFF)
+}
+
+val file = args(0)
+val fileSource = Source.fromFile(file)
+val words = fileSource.mkString.toLowerCase.split("\\W+")
+val distinctWords = words.toSet.toList
+val n = distinctWords.size
+val k = 4
+var arrayOfCounts = Array.ofDim[Int](math.pow(2, 16).toInt, k)
+words.foreach(w => Range(0, k).foreach(i => arrayOfCounts(familyHash(w, k)(i))(i) += 1))
+val wordsMinCounts = distinctWords.map(w => Range(0, k).map(i => arrayOfCounts(familyHash(w, k)(i))(i)).toList.min)
+val wordsTrueFreqs = distinctWords.map(w => words.count(i => i == w))
+val wrongCountedWords = Range(0, n).filter(i => wordsMinCounts(i) != wordsTrueFreqs(i)).size
+println(wrongCountedWords / n)
+}
+else println("no file")
+}
+}
+
+C:\Users\Student234758>scala CountMin C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\alice29.txt
+0
+
+C:\Users\Student234758>scala CountMin C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\large\bible.txt
+0
+
+I don't know if it should be the case, but I chose to print only the fraction of wrongly counted words, which carries all information, because it is zero.
+
+Assingnment 5:
+
+def majority(lst: List[Char]): Char = {
+var n = 0
+var T: Char = 1.toChar
+for (char <- lst) {
+if (n == 0) {
+n = 1
+T = char
+} else {
+if (T == char) {
+n += 1
+} else {
+n -= 1
+}}
+println("T = " + T + ", n = " + n)}
+T}
+
+scala> majority(List('a', 'a', 'a', 'c', 'c', 'b', 'b', 'c', 'c', 'c', 'b', 'c', 'c'))
+T = a, n = 1
+T = a, n = 2
+T = a, n = 3
+T = a, n = 2
+T = a, n = 1
+T = a, n = 0
+T = b, n = 1
+T = b, n = 0
+T = c, n = 1
+T = c, n = 2
+T = c, n = 1
+T = c, n = 2
+T = c, n = 3
+val res0: Char = c
+
+I initialize T as some dummy value, to omit using option type and writing Some(.), whenever working with T.
+
+Assingnment 6:
+
+def majority6(lst: List[Char]): Char = {
+var n = 0
+var nPrime = 0
+val tStar = majority(lst)
+var T: Char = 1.toChar
+for (char <- lst) {
+if (n == 0) {
+n = 1
+T = char
+} else {
+if (T == char) {
+n += 1
+} else {
+n -= 1
+}}
+if (T == tStar) {
+nPrime = n
+} else {
+nPrime = -n}
+println("T = " + T + ", n = " + n + ", n' = " + nPrime)}
+T}
+
+scala> majority6(List('a', 'a', 'a', 'c', 'c', 'b', 'b', 'c', 'c', 'c', 'b', 'c', 'c'))
+T = a, n = 1
+T = a, n = 2
+T = a, n = 3
+T = a, n = 2
+T = a, n = 1
+T = a, n = 0
+T = b, n = 1
+T = b, n = 0
+T = c, n = 1
+T = c, n = 2
+T = c, n = 1
+T = c, n = 2
+T = c, n = 3
+T = a, n = 1, n' = -1
+T = a, n = 2, n' = -2
+T = a, n = 3, n' = -3
+T = a, n = 2, n' = -2
+T = a, n = 1, n' = -1
+T = a, n = 0, n' = 0
+T = b, n = 1, n' = -1
+T = b, n = 0, n' = 0
+T = c, n = 1, n' = 1
+T = c, n = 2, n' = 2
+T = c, n = 1, n' = 1
+T = c, n = 2, n' = 2
+T = c, n = 3, n' = 3
+val res1: Char = c
+
+The counter n' increases every time T* occurred in stream, and decreases for every other element. n' being positibe means, the counter was incremented more than half of the stream length, thus T* occurred that many times, so it is a true majority element.
+
+Assingnment 7:
+
+object MisraGriesSummary {
+import scala.io._
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val file = args(0)
+val fileSource = Source.fromFile(file)
+val words = fileSource.mkString.toLowerCase.split("\\W+")
+val m = words.size
+val k = 21
+val dummy = "0cleared0"
+var commonWords: Array[String] = Array.fill(k - 1)("0why0")
+var wordCounters: Array[Int] = Array.fill(k - 1)(0)
+
+for (w <- words) {
+val keyExists = commonWords.indexOf(w)
+if (keyExists != -1) {
+wordCounters(keyExists) += 1
+} else {
+val spaceAvailable = wordCounters.indexOf(0)
+if (spaceAvailable != -1) {
+commonWords(spaceAvailable) = w
+wordCounters(spaceAvailable) = 1
+} else {
+wordCounters = wordCounters.map(i => i - 1)
+val keysWithZeros = Range(0, k - 1).filter(i => wordCounters(i) == 0)
+keysWithZeros.foreach(i => commonWords(i) = dummy)
+}}}
+println("The frequency threshold is " + m.toDouble / k)
+println("Common words are " + commonWords.toList + ",  their counters are " + wordCounters.toList)
+val legitimateWordsIndicies = Range(0, k - 1).filter(i => commonWords(i) != dummy)
+val legitimateWords = legitimateWordsIndicies.map(i => commonWords(i))
+println(legitimateWords)
+val theirOccurences = legitimateWords.map(w => words.count(i => i == w))
+println(theirOccurences)
+val lowerFreqBounds = theirOccurences.map(o => o - m.toDouble / k)
+println(lowerFreqBounds)
+val mgsFreqs = legitimateWordsIndicies.map(i => wordCounters(i))
+println(mgsFreqs)
+val falsePositivity = theirOccurences.map(i => i > m.toDouble / k)
+println(falsePositivity)
+val theoreticalEstimateHolds = Range(0, legitimateWordsIndicies.size).map(i => theirOccurences(i) - m.toDouble / k < mgsFreqs(i) && mgsFreqs(i) < theirOccurences(i))
+println(theoreticalEstimateHolds) 
+
+
+}
+else println("no file")
+}
+}
+
+C:\Users\Student234758>scala MisraGriesSummary C:\Users\Student234758\Desktop\scala_lab\canterbury-corpus\canterbury\alice29.txt
+The frequency threshold is 1301.6190476190477
+Common words are List(0cleared0, of, 0cleared0, 0cleared0, 0cleared0, the, 0cleared0, 0cleared0, 0cleared0, 0cleared0, 0cleared0, 0cleared0, and, 0cleared0, 0cleared0, 0cleared0, 0cleared0, 0cleared0, 0cleared0, 0cleared0),  their counters are List(0, 3, 0, 0, 0, 383, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0)
+Vector(of, the, and)
+Vector(513, 1642, 872)
+Vector(-788.6190476190477, 340.3809523809523, -429.6190476190477)
+Vector(3, 383, 5)
+Vector(false, true, false)
+Vector(true, true, true)

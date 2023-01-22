@@ -1,0 +1,20 @@
+object HLLBucket {
+import scala.io._
+import scala.util.hashing.MurmurHash3
+def main(args:Array[String]):Unit = {
+if (args.length>0)
+{
+val file = args(0)
+val fileSource = Source.fromFile(file)
+val words = fileSource.mkString.toLowerCase.split("\\W+")
+val m = math.pow(2, 10).toInt
+val alpha = 0.7213 / (1 + 1.079 / m)
+def arrMax (arr: Array[Int]): Int = { if (arr.nonEmpty) arr.max else 0 }
+val numbers = words.map(w => MurmurHash3.stringHash(w))
+val zjs = Range(0, m).map(i => numbers.filter(j => math.floorMod(j, m) == i).map(k => Integer.numberOfLeadingZeros(k) + 1)).map(lst => arrMax(lst)).map(l => math.pow(2, l).toInt)
+println("The exact number of distinct words is " + words.groupBy(i => i).size)
+println("If we use HLL, the approximate number of distinct words is " + alpha*m*m/zjs.map(i => 1 / i.toDouble).sum)
+}
+else println("no file")
+}
+}
